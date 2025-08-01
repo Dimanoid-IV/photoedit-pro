@@ -313,15 +313,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #222;
-    padding: 20px;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 #editorCanvas {
     max-width: 100%;
     max-height: 100%;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .editor-controls {
@@ -809,54 +811,298 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* Draggable Elements */
+.draggable-text, .draggable-sticker {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+    z-index: 10;
+    padding: 5px;
+    border: 2px dashed transparent;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+}
+
+.draggable-text:hover, .draggable-sticker:hover {
+    border-color: #667eea;
+}
+
+.draggable-text.selected, .draggable-sticker.selected {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.draggable-text {
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    min-width: 20px;
+    text-align: center;
+}
+
+.draggable-sticker {
+    font-size: 48px;
+    line-height: 1;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-element {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 11;
+}
+
+.draggable-text:hover .delete-element,
+.draggable-sticker:hover .delete-element,
+.draggable-text.selected .delete-element,
+.draggable-sticker.selected .delete-element {
+    display: flex;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
+        padding: 5px;
     }
     
     .logo h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+    }
+    
+    .tagline {
+        font-size: 1rem;
     }
     
     .upload-section {
-        padding: 20px;
+        padding: 15px;
+        margin-bottom: 20px;
     }
     
     .upload-area {
-        padding: 40px 15px;
+        padding: 30px 10px;
     }
     
+    .upload-area h2 {
+        font-size: 1.4rem;
+    }
+    
+    .gallery-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .add-more-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+    
+    .photo-controls {
+        padding: 10px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .photo-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .photo-action-btn {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+    }
+    
+    /* Editor Mobile Styles */
     .editor-container {
         flex-direction: column;
     }
     
-    .editor-controls {
-        width: 100%;
-        max-height: 300px;
+    .editor-canvas-container {
+        height: 50vh;
+        min-height: 300px;
     }
     
+    .editor-controls {
+        width: 100%;
+        max-height: 50vh;
+        padding: 15px;
+    }
+    
+    .control-group {
+        margin-bottom: 20px;
+    }
+    
+    .filters-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .filter-btn {
+        padding: 8px 4px;
+        font-size: 0.8rem;
+    }
+    
+    .crop-controls {
+        justify-content: center;
+    }
+    
+    .crop-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .text-controls {
+        gap: 8px;
+    }
+    
+    #textInput {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .text-style-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .stickers-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+    
+    .sticker-btn {
+        padding: 8px;
+        font-size: 20px;
+    }
+    
+    .editor-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    /* Collage Mobile Styles */
     .collage-container {
         flex-direction: column;
     }
     
-    .collage-templates {
+    .collage-sidebar {
         width: 100%;
-        max-height: 200px;
+        max-height: 40vh;
     }
     
-    .photos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 15px;
+    .collage-templates {
+        padding: 15px;
+    }
+    
+    .templates-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    
+    .template-item {
+        padding: 8px;
+    }
+    
+    .template-preview {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .collage-photos {
+        padding: 15px;
+    }
+    
+    .collage-photos-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .collage-photo-item img {
+        height: 60px;
     }
     
     .main-actions {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
+        gap: 10px;
+        padding: 0 10px;
     }
     
     .action-btn {
         width: 100%;
-        max-width: 300px;
+        padding: 15px;
+        font-size: 1rem;
+    }
+    
+    /* Touch-friendly draggable elements */
+    .draggable-text, .draggable-sticker {
+        min-width: 44px;
+        min-height: 44px;
+        touch-action: none;
+    }
+    
+    .draggable-sticker {
+        width: 50px;
+        height: 50px;
+        font-size: 36px;
+    }
+    
+    .delete-element {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+        top: -12px;
+        right: -12px;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    
+    .tagline {
+        font-size: 0.9rem;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .filters-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stickers-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .templates-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .collage-photos-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

@@ -15,6 +15,14 @@ class PhotoEditor {
             saturation: 0
         };
         
+        // Drag & Drop properties
+        this.textElements = [];
+        this.stickerElements = [];
+        this.draggedElement = null;
+        this.dragOffset = { x: 0, y: 0 };
+        this.selectedElement = null;
+        this.selectedPhotosForCollage = [];
+        
         this.init();
     }
 
@@ -262,8 +270,31 @@ class PhotoEditor {
     }
 
     closeEditor() {
+        // Очищаем все перетаскиваемые элементы
+        this.clearDraggableElements();
+        
         document.getElementById('editorSection').style.display = 'none';
         this.resetControls();
+    }
+
+    clearDraggableElements() {
+        // Удаляем все текстовые элементы
+        this.textElements.forEach(item => {
+            const element = document.getElementById(item.id);
+            if (element) {
+                element.remove();
+            }
+        });
+        this.textElements = [];
+        
+        // Удаляем все стикеры
+        this.stickerElements.forEach(item => {
+            const element = document.getElementById(item.id);
+            if (element) {
+                element.remove();
+            }
+        });
+        this.stickerElements = [];
     }
 
     applyFilter(filterName, resetAdjustments = true) {
@@ -479,6 +510,9 @@ class PhotoEditor {
     saveImage() {
         if (!this.canvas) return;
         
+        // Рендерим все перетаскиваемые элементы на canvas перед сохранением
+        this.renderDraggableElementsToCanvas();
+        
         const editedImageData = this.canvas.toDataURL('image/png');
         this.currentPhoto.src = editedImageData;
         this.currentPhoto.edited = true;
@@ -488,6 +522,52 @@ class PhotoEditor {
         
         // Show success message
         this.showNotification('Изображение сохранено!');
+    }
+
+    renderDraggableElementsToCanvas() {
+        const canvasContainer = document.getElementById('editorCanvasContainer');
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const containerRect = canvasContainer.getBoundingClientRect();
+        
+        // Рендерим текст
+        this.textElements.forEach(textItem => {
+            const element = textItem.element;
+            const elementRect = element.getBoundingClientRect();
+            
+            // Вычисляем позицию относительно canvas
+            const x = (elementRect.left + elementRect.width / 2 - canvasRect.left) * (this.canvas.width / canvasRect.width);
+            const y = (elementRect.top + elementRect.height / 2 - canvasRect.top) * (this.canvas.height / canvasRect.height);
+            
+            // Настройки текста
+            this.ctx.font = `bold ${textItem.size}px Arial`;
+            this.ctx.fillStyle = textItem.color;
+            this.ctx.strokeStyle = textItem.color === '#ffffff' ? '#000000' : '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            
+            // Рендерим текст с обводкой
+            this.ctx.strokeText(textItem.text, x, y);
+            this.ctx.fillText(textItem.text, x, y);
+        });
+        
+        // Рендерим стикеры
+        this.stickerElements.forEach(stickerItem => {
+            const element = stickerItem.element;
+            const elementRect = element.getBoundingClientRect();
+            
+            // Вычисляем позицию относительно canvas
+            const x = (elementRect.left + elementRect.width / 2 - canvasRect.left) * (this.canvas.width / canvasRect.width);
+            const y = (elementRect.top + elementRect.height / 2 - canvasRect.top) * (this.canvas.height / canvasRect.height);
+            
+            // Настройки стикера
+            this.ctx.font = '48px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            
+            // Рендерим стикер
+            this.ctx.fillText(stickerItem.emoji, x, y);
+        });
     }
 
     openCollageEditor() {
@@ -771,26 +851,54 @@ class PhotoEditor {
             return;
         }
         
-        // Настройки текста
-        this.ctx.font = `bold ${textSize}px Arial`;
-        this.ctx.fillStyle = textColor;
-        this.ctx.strokeStyle = textColor === '#ffffff' ? '#000000' : '#ffffff';
-        this.ctx.lineWidth = 2;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        
-        // Позиция текста (центр изображения)
-        const x = this.canvas.width / 2;
-        const y = this.canvas.height / 2;
-        
-        // Обводка для лучшей читаемости
-        this.ctx.strokeText(text, x, y);
-        this.ctx.fillText(text, x, y);
+        // Создаем перетаскиваемый текстовый элемент
+        this.createDraggableText(text, textColor, textSize);
         
         // Очистить поле ввода
         textInput.value = '';
         
-        this.showNotification('Текст добавлен!');
+        this.showNotification('Текст добавлен! Перетащите его в нужное место.');
+    }
+
+    createDraggableText(text, color, size) {
+        const canvasContainer = document.getElementById('editorCanvasContainer');
+        const textElement = document.createElement('div');
+        
+        const textId = 'text_' + Date.now();
+        textElement.id = textId;
+        textElement.className = 'draggable-text';
+        textElement.textContent = text;
+        
+        // Стили текста
+        textElement.style.color = color;
+        textElement.style.fontSize = size + 'px';
+        textElement.style.left = '50%';
+        textElement.style.top = '50%';
+        textElement.style.transform = 'translate(-50%, -50%)';
+        
+        // Кнопка удаления
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-element';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.removeTextElement(textId);
+        };
+        
+        textElement.appendChild(deleteBtn);
+        canvasContainer.appendChild(textElement);
+        
+        // Сохраняем элемент
+        this.textElements.push({
+            id: textId,
+            element: textElement,
+            text: text,
+            color: color,
+            size: size
+        });
+        
+        // Добавляем drag & drop функциональность
+        this.makeDraggable(textElement);
     }
 
     addStickerToImage(stickerType, stickerEmoji) {
@@ -799,18 +907,162 @@ class PhotoEditor {
             return;
         }
         
-        // Настройки стикера
-        this.ctx.font = '48px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
+        // Создаем перетаскиваемый стикер
+        this.createDraggableSticker(stickerType, stickerEmoji);
         
-        // Случайная позиция в верхней половине изображения
-        const x = Math.random() * (this.canvas.width - 100) + 50;
-        const y = Math.random() * (this.canvas.height / 2 - 100) + 50;
+        this.showNotification('Стикер добавлен! Перетащите его в нужное место.');
+    }
+
+    createDraggableSticker(type, emoji) {
+        const canvasContainer = document.getElementById('editorCanvasContainer');
+        const stickerElement = document.createElement('div');
         
-        this.ctx.fillText(stickerEmoji, x, y);
+        const stickerId = 'sticker_' + Date.now();
+        stickerElement.id = stickerId;
+        stickerElement.className = 'draggable-sticker';
+        stickerElement.textContent = emoji;
         
-        this.showNotification('Стикер добавлен!');
+        // Случайная позиция в верхней половине
+        const randomX = Math.random() * 60 + 20; // 20-80%
+        const randomY = Math.random() * 30 + 10; // 10-40%
+        
+        stickerElement.style.left = randomX + '%';
+        stickerElement.style.top = randomY + '%';
+        
+        // Кнопка удаления
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-element';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.removeStickerElement(stickerId);
+        };
+        
+        stickerElement.appendChild(deleteBtn);
+        canvasContainer.appendChild(stickerElement);
+        
+        // Сохраняем элемент
+        this.stickerElements.push({
+            id: stickerId,
+            element: stickerElement,
+            type: type,
+            emoji: emoji
+        });
+        
+        // Добавляем drag & drop функциональность
+        this.makeDraggable(stickerElement);
+    }
+
+    makeDraggable(element) {
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+        
+        // Mouse events
+        element.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            this.selectedElement = element;
+            element.classList.add('selected');
+            
+            // Убираем выделение с других элементов
+            document.querySelectorAll('.draggable-text, .draggable-sticker').forEach(el => {
+                if (el !== element) el.classList.remove('selected');
+            });
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            const rect = element.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || this.selectedElement !== element) return;
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            const newX = initialX + deltaX;
+            const newY = initialY + deltaY;
+            
+            element.style.left = newX + 'px';
+            element.style.top = newY + 'px';
+            element.style.transform = 'none';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isDragging && this.selectedElement === element) {
+                isDragging = false;
+                this.selectedElement = null;
+            }
+        });
+        
+        // Touch events for mobile
+        element.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            this.selectedElement = element;
+            element.classList.add('selected');
+            
+            document.querySelectorAll('.draggable-text, .draggable-sticker').forEach(el => {
+                if (el !== element) el.classList.remove('selected');
+            });
+            
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            
+            const rect = element.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            e.preventDefault();
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging || this.selectedElement !== element) return;
+            
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+            
+            const newX = initialX + deltaX;
+            const newY = initialY + deltaY;
+            
+            element.style.left = newX + 'px';
+            element.style.top = newY + 'px';
+            element.style.transform = 'none';
+            
+            e.preventDefault();
+        });
+        
+        document.addEventListener('touchend', () => {
+            if (isDragging && this.selectedElement === element) {
+                isDragging = false;
+                this.selectedElement = null;
+            }
+        });
+    }
+
+    removeTextElement(textId) {
+        const element = document.getElementById(textId);
+        if (element) {
+            element.remove();
+        }
+        
+        this.textElements = this.textElements.filter(item => item.id !== textId);
+        this.showNotification('Текст удален');
+    }
+
+    removeStickerElement(stickerId) {
+        const element = document.getElementById(stickerId);
+        if (element) {
+            element.remove();
+        }
+        
+        this.stickerElements = this.stickerElements.filter(item => item.id !== stickerId);
+        this.showNotification('Стикер удален');
     }
 
     showMainActions() {
