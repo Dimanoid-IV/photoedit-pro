@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoEdit Pro - Редактор фотографий онлайн</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-camera"></i>
+                <h1>PhotoEdit Pro</h1>
+            </div>
+            <p class="tagline">Создавайте потрясающие фото с профессиональными фильтрами</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h2>Загрузите до 5 фотографий</h2>
+                    <p>Перетащите файлы сюда или нажмите для выбора</p>
+                    <input type="file" id="fileInput" multiple accept="image/*" max="5">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-plus"></i> Выбрать фото
+                    </button>
+                </div>
+                
+                <div class="instagram-upload">
+                    <button class="instagram-btn" id="instagramBtn">
+                        <i class="fab fa-instagram"></i> Загрузить из Instagram
+                    </button>
+                </div>
+            </section>
+
+            <!-- Photo Gallery -->
+            <section class="photo-gallery" id="photoGallery" style="display: none;">
+                <div class="gallery-header">
+                    <h2>Ваши фотографии</h2>
+                    <button class="add-more-btn" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-plus"></i> Добавить ещё фото
+                    </button>
+                </div>
+                <div class="photos-grid" id="photosGrid"></div>
+            </section>
+
+            <!-- Editor Section -->
+            <section class="editor-section" id="editorSection" style="display: none;">
+                <div class="editor-header">
+                    <h2>Редактор фотографий</h2>
+                    <button class="close-editor" id="closeEditor">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="editor-container">
+                    <div class="editor-canvas-container">
+                        <canvas id="editorCanvas"></canvas>
+                    </div>
+                    
+                    <div class="editor-controls">
+                        <!-- Filters -->
+                        <div class="control-group">
+                            <h3><i class="fas fa-magic"></i> Фильтры</h3>
+                            <div class="filters-grid">
+                                <button class="filter-btn" data-filter="none">Оригинал</button>
+                                <button class="filter-btn" data-filter="vintage">Винтаж</button>
+                                <button class="filter-btn" data-filter="sepia">Сепия</button>
+                                <button class="filter-btn" data-filter="grayscale">Ч/Б</button>
+                                <button class="filter-btn" data-filter="bright">Яркий</button>
+                                <button class="filter-btn" data-filter="contrast">Контраст</button>
+                                <button class="filter-btn" data-filter="warm">Теплый</button>
+                                <button class="filter-btn" data-filter="cool">Холодный</button>
+                            </div>
+                        </div>
+
+                        <!-- Crop Tools -->
+                        <div class="control-group">
+                            <h3><i class="fas fa-crop"></i> Обрезка</h3>
+                            <div class="crop-controls">
+                                <button class="crop-btn" data-ratio="free">Свободная</button>
+                                <button class="crop-btn" data-ratio="1:1">1:1</button>
+                                <button class="crop-btn" data-ratio="4:3">4:3</button>
+                                <button class="crop-btn" data-ratio="16:9">16:9</button>
+                            </div>
+                        </div>
+
+                        <!-- Adjustments -->
+                        <div class="control-group">
+                            <h3><i class="fas fa-sliders-h"></i> Настройки</h3>
+                            <div class="adjustments">
+                                <div class="adjustment-item">
+                                    <label>Яркость</label>
+                                    <input type="range" id="brightness" min="-100" max="100" value="0">
+                                </div>
+                                <div class="adjustment-item">
+                                    <label>Контрастность</label>
+                                    <input type="range" id="contrast" min="-100" max="100" value="0">
+                                </div>
+                                <div class="adjustment-item">
+                                    <label>Насыщенность</label>
+                                    <input type="range" id="saturation" min="-100" max="100" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Text Tools -->
+                        <div class="control-group">
+                            <h3><i class="fas fa-font"></i> Текст</h3>
+                            <div class="text-controls">
+                                <input type="text" id="textInput" placeholder="Введите текст (до 30 знаков)" maxlength="30">
+                                <div class="text-style-controls">
+                                    <select id="textColor">
+                                        <option value="#ffffff">Белый</option>
+                                        <option value="#000000">Черный</option>
+                                        <option value="#ff0000">Красный</option>
+                                        <option value="#00ff00">Зеленый</option>
+                                        <option value="#0000ff">Синий</option>
+                                        <option value="#ffff00">Желтый</option>
+                                        <option value="#ff00ff">Розовый</option>
+                                    </select>
+                                    <input type="range" id="textSize" min="16" max="48" value="24">
+                                    <span id="textSizeLabel">24px</span>
+                                </div>
+                                <button class="btn-primary" id="addTextBtn">Добавить текст</button>
+                            </div>
+                        </div>
+
+                        <!-- Stickers -->
+                        <div class="control-group">
+                            <h3><i class="fas fa-smile"></i> Стикеры</h3>
+                            <div class="stickers-grid">
+                                <button class="sticker-btn" data-sticker="heart">❤️</button>
+                                <button class="sticker-btn" data-sticker="like">👍</button>
+                                <button class="sticker-btn" data-sticker="smile">😊</button>
+                                <button class="sticker-btn" data-sticker="love">😍</button>
+                                <button class="sticker-btn" data-sticker="fire">🔥</button>
+                                <button class="sticker-btn" data-sticker="star">⭐</button>
+                                <button class="sticker-btn" data-sticker="kiss">😘</button>
+                                <button class="sticker-btn" data-sticker="cool">😎</button>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="editor-actions">
+                            <button class="btn-secondary" id="resetBtn">Сбросить</button>
+                            <button class="btn-primary" id="saveBtn">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Collage Section -->
+            <section class="collage-section" id="collageSection" style="display: none;">
+                <div class="collage-header">
+                    <h2>Создание коллажа</h2>
+                    <button class="close-collage" id="closeCollage">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="collage-container">
+                    <div class="collage-sidebar">
+                        <div class="collage-templates">
+                            <h3>Выберите шаблон</h3>
+                            <div class="templates-grid">
+                                <div class="template-item" data-template="grid2x2">
+                                    <div class="template-preview grid-2x2"></div>
+                                    <span>2×2</span>
+                                </div>
+                                <div class="template-item" data-template="grid3x1">
+                                    <div class="template-preview grid-3x1"></div>
+                                    <span>3×1</span>
+                                </div>
+                                <div class="template-item" data-template="grid1x3">
+                                    <div class="template-preview grid-1x3"></div>
+                                    <span>1×3</span>
+                                </div>
+                                <div class="template-item" data-template="mosaic">
+                                    <div class="template-preview mosaic"></div>
+                                    <span>Мозаика</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="collage-photos">
+                            <h3>Выберите фотографии</h3>
+                            <div class="collage-photos-grid" id="collagePhotosGrid">
+                                <!-- Фотографии для выбора -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="collage-canvas-container">
+                        <canvas id="collageCanvas"></canvas>
+                    </div>
+                    
+                    <div class="collage-actions">
+                        <button class="btn-secondary" id="resetCollage">Сбросить</button>
+                        <button class="btn-primary" id="downloadCollage">Скачать коллаж</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <div class="main-actions" id="mainActions" style="display: none;">
+                <button class="action-btn" id="createCollageBtn">
+                    <i class="fas fa-th"></i>
+                    Создать коллаж
+                </button>
+                <button class="action-btn" id="downloadAllBtn">
+                    <i class="fas fa-download"></i>
+                    Скачать все
+                </button>
+                <button class="action-btn primary" id="sendPhotosBtn">
+                    <i class="fas fa-shopping-cart"></i>
+                    Заказать
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 PhotoEdit Pro. Создавайте красивые фотографии легко и быстро.</p>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Обработка изображения...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
